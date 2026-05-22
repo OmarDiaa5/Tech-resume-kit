@@ -12,6 +12,10 @@ The original repo is designed for researchers with papers, publications, Google 
 - **Leadership & Activities** instead of Honors & Awards
 - **Competitions** tracked with placement and key achievements
 - **Portfolio metadata** (repos, tech stacks, metrics) instead of paper metadata
+- **Incremental Updates** via the `/setup-update` skill to avoid duplicating extraction work
+- **Lightweight Provenance Checkpoints:** The AI asks for evidence when it spots weak claims during generation
+- **Voice/Edit Signals:** The AI learns your wording preferences from cover letter and resume edits
+- **Token Optimization:** Session state is isolated in `SESSIONS.md` to keep `CLAUDE.md` context small
 
 ## How to Apply
 
@@ -74,6 +78,7 @@ tech-resume-kit-patch/
 ├── .claude/skills/                   # Claude Code skills (for Claude Code users)
 │   ├── setup-extract/SKILL.md
 │   ├── setup-build-kb/SKILL.md
+│   ├── setup-update/SKILL.md
 │   ├── make-resume/SKILL.md
 │   ├── make-cl/SKILL.md
 │   ├── edit-resume/SKILL.md
@@ -90,9 +95,14 @@ tech-resume-kit-patch/
 │       └── achievement_reframing_guide.md  # Template: format for role-type framing
 ├── knowledge_base/
 │   ├── extractions/_INVENTORY.md     # Empty inventory with tech-oriented columns
-│   ├── source_materials/.gitkeep     # Drop project docs, READMEs, syllabi here
+│   ├── sources/                      # Organized folders for input materials
+│   │   ├── project_docs/.gitkeep
+│   │   ├── certificates/.gitkeep
+│   │   ├── course_materials/.gitkeep
+│   │   └── competition_docs/.gitkeep
 │   └── notes/.gitkeep               # Any other reference material
 ├── config.md                         # Template with placeholders (fill in your info)
+├── SESSIONS.md                       # Master tracker of active sessions
 ├── CLAUDE.md                         # Updated project instructions
 ├── DOCS.md                           # Updated documentation
 └── README.md                         # This file
@@ -110,6 +120,7 @@ Both systems read the same knowledge base and config files. They do not interfer
 
 1. **Extract** your projects: `/setup-extract` on each project README, course syllabus, internship doc
 2. **Build** your knowledge base: `/setup-build-kb` synthesizes everything into experience files and bundles
-3. **Generate** a resume: `/make-resume JDs/your_jd.txt` tailors a resume to a specific job
-4. **Generate** a cover letter: `/make-cl output/<Folder>/session_<name>.md`
-5. **Critique** the package: `/critique output/<Folder>/session_<name>.md`
+3. **Update** your knowledge base: `/setup-update` whenever you finish a new project or earn a cert
+4. **Generate** a resume: `/make-resume JDs/your_jd.txt` tailors a resume to a specific job
+5. **Generate** a cover letter: `/make-cl output/<Folder>/session_<name>.md`
+6. **Critique** the package: `/critique output/<Folder>/session_<name>.md`

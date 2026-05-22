@@ -1,163 +1,126 @@
-# claude-resume-kit
+# Tech Resume Kit — Patch for claude-resume-kit
 
-Most AI resume tools work the same way: paste resume + paste JD, get a rewrite. They don't know which of your papers is published vs. under review. They don't know you only ran the simulations, not the experiments. They'll upgrade "contributed to" into "developed" without blinking.
+This folder contains all the files needed to convert the original [claude-resume-kit](https://github.com/ARPeeketi/claude-resume-kit) from a **researcher/academic** paradigm into a **tech professional** paradigm — optimized for software engineers, ML engineers, data scientists, and similar technical roles.
 
-This is different. You extract your papers, codebases, and reports once — the system asks structured questions about each one. After that, every new application is just pointing it at a JD. It picks the right achievements, frames them for the audience, enforces accuracy, and generates LaTeX you compile locally.
+## What Changed
 
-Built for researchers and engineers with lots of source material (papers, code, reports) who apply to many positions across different employer types.
+The original repo is designed for researchers with papers, publications, Google Scholar profiles, and academic grant funding. This patch replaces that with:
 
----
+- **Projects** instead of Publications
+- **Technical Skills** categorized by domain (Languages, ML/DL, CV, NLP, Cloud/MLOps)
+- **Certifications & Training** instead of Selected Publications
+- **Leadership & Activities** instead of Honors & Awards
+- **Competitions** tracked with placement and key achievements
+- **Portfolio metadata** (repos, tech stacks, metrics) instead of paper metadata
+- **Incremental Updates** via the `/setup-update` skill to avoid duplicating extraction work
+- **Lightweight Provenance Checkpoints:** The AI asks for evidence when it spots weak claims during generation
+- **Voice/Edit Signals:** The AI learns your wording preferences from cover letter and resume edits
+- **Token Optimization:** Session state is isolated in `SESSIONS.md` to keep `CLAUDE.md` context small
 
-## What makes this different
+## How to Apply
 
-**Knowledge base, not a rewriter.** You extract once. Every application draws from verified source material — not a pasted resume that gets "improved."
-
-**Anti-fabrication by design.** Provenance flags on every achievement (published / under review / internal). Verb discipline rules prevent overclaiming. A corrections log ensures fixed errors don't reappear.
-
-**AI fingerprint avoidance.** Banned-word lists, structural anti-patterns, and a 12-item post-generation scan so output reads as human-written.
-
-**Multi-perspective critique.** Five reader personas (ATS bot through technical reviewer) score your resume across 8 dimensions in a fresh context window.
-
-**LaTeX output, locally compiled.** No data leaves your machine beyond the Claude Code conversation.
-
----
-
-## Example Output
-
-Here's what the system generates for the included fictional researcher (Dr. Jordan Chen, computational biologist) applying to a tenure-track faculty position:
-
-- [Example Resume (PDF)](resume_builder/examples/example_resume.pdf) — 2-page resume with JD-tailored bullets, skills, and publications
-- [Example Cover Letter (PDF)](resume_builder/examples/example_cover_letter.pdf) — 1-page academic cover letter with specific hooks
-- [Example Session File](resume_builder/examples/example_session_file.md) — the decision log that produced this output
-- [Source .tex files](resume_builder/examples/output/) — the LaTeX source Claude generated
-
-All example data is in `resume_builder/examples/` — extraction, experience file, bundle, config, and session file.
-
----
-
-## What you actually do
-
-**One-time setup (~10 min per paper):**
-1. Drop your papers/reports into `knowledge_base/papers/`
-2. Run `/setup-extract` on each — Claude reads it and asks you questions about your contributions and publication status
-3. Run `/setup-build-kb` — synthesizes everything into your knowledge base
-
-**Per application (~15-20 min):**
-1. Drop the JD into `JDs/`
-2. Run `/make-resume JDs/target_job.txt` — approve the bullet plan, get a `.tex` file
-3. Run `/make-cl` for a cover letter
-4. Run `/critique` for a scored review with specific fixes
-
-Each step uses a **separate Claude Code session** for best quality (fresh context = less bias).
-
----
-
-## Prerequisites
-
-- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** CLI installed and authenticated
-- **A LaTeX distribution** for compiling `.tex` to `.pdf` (e.g., [TeX Live](https://tug.org/texlive/), [MacTeX](https://tug.org/mactex/), [MiKTeX](https://miktex.org/))
-- **Your research papers** or project documentation ready for extraction
-
----
-
-## Try it first (5 minutes)
-
-Want to see what it does before extracting your own papers? The repo includes a complete example knowledge base for a fictional researcher:
+### 1. Clone the Original Repo
 
 ```bash
-git clone https://github.com/ARPeeketi/claude-resume-kit.git
-cd claude-resume-kit
-claude
-/make-resume JDs/example_jd.txt
-```
-
-This runs the full pipeline — JD analysis, bullet selection, LaTeX generation — using the included example data. No setup required.
-
----
-
-## Full Setup
-
-### 1. Clone and configure
-
-```bash
-git clone https://github.com/ARPeeketi/claude-resume-kit.git
+git clone https://github.com/ARPeeketi/claude-resume-kit
 cd claude-resume-kit
 ```
 
-Edit `config.md` with your details (name, email, provenance flags, role types). See `resume_builder/examples/example_config.md` for a complete example.
+### 2. Copy This Patch
 
-### 2. Extract your papers
+Copy the contents of this folder **on top** of the cloned repo. All paths match the repo structure:
 
-Place PDFs or `.tex` source files in `knowledge_base/papers/`, then:
-
-```
-/setup-extract knowledge_base/papers/my_paper.pdf
-```
-
-Claude reads the paper, asks clarifying questions about your contributions, and creates a structured extraction. Repeat for each paper.
-
-### 3. Build your knowledge base
-
-```
-/setup-build-kb
+```bash
+# From the parent directory containing both folders:
+cp -r tech-resume-kit-patch/* claude-resume-kit/
+cp -r tech-resume-kit-patch/.agents claude-resume-kit/
+cp -r tech-resume-kit-patch/.claude claude-resume-kit/
 ```
 
-This synthesizes all extractions into experience files, role-type bundles, and support files.
-
-### 4. Customize your LaTeX templates
-
-Open the templates in `resume_builder/templates/` and fill in your FIXED sections — education, header, awards, publications. The `[CONFIG: ...]` placeholders show you what to fill in.
-
-### 5. Generate for a job
-
-```
-/make-resume JDs/target_job.txt
+On Windows (PowerShell):
+```powershell
+Copy-Item -Path "tech-resume-kit-patch\*" -Destination "claude-resume-kit\" -Recurse -Force
+Copy-Item -Path "tech-resume-kit-patch\.agents" -Destination "claude-resume-kit\" -Recurse -Force
+Copy-Item -Path "tech-resume-kit-patch\.claude" -Destination "claude-resume-kit\" -Recurse -Force
 ```
 
-Then in separate sessions: `/make-cl` for the cover letter, `/critique` for a scored review.
+### 3. Clean Up Old Academic Files
 
----
+```bash
+# Delete the old papers directory (replaced by source_materials/)
+rm -rf knowledge_base/papers/
 
-## How It Works
-
-```
-Your Papers --> /setup-extract --> Extractions --> /setup-build-kb --> Knowledge Base
-                                                                          |
-Job Description --> /make-resume --> Tailored Resume/CV (.tex)            |
-                        |              v                                  |
-                   /make-cl --> Cover Letter (.tex)                       |
-                        |              v                                  |
-                   /critique --> 8-Part Score + AI Scan + Fixes           |
-                        |              v                                  |
-                   /edit-resume --> Refined Package                       |
+# Delete the old pub_metadata.md (replaced by portfolio_metadata.md)
+rm -f resume_builder/support/pub_metadata.md
 ```
 
-| Skill | Purpose | Input | Output |
-|-------|---------|-------|--------|
-| `/setup-extract` | Extract structured data from a paper | Paper path | `knowledge_base/extractions/*.md` |
-| `/setup-build-kb` | Build KB from extractions | All extractions | `resume_builder/{experience,bundles,support}/` |
-| `/make-resume` | Generate tailored resume or CV | JD path | `output/<Folder>/e2e_*.tex` + session file |
-| `/make-cl` | Generate matching cover letter | Session file | `output/<Folder>/*_cover_letter.tex` |
-| `/edit-resume` | Edit resume/CV/CL from feedback | Session + feedback | Updated `.tex` files |
-| `/critique` | Independent quality review | Session file | `output/<Folder>/critique_*.md` |
+### 4. Fill in Your Info
 
----
+1. Open `config.md` and replace all `[YOUR ...]` placeholders with your details
+2. Fill in your Provenance Flags, Role Types, and Decision Tree
+3. Update `resume_builder/templates/resume_template.tex` — fill in the `[FIXED: ...]` and `[CONFIG: ...]` placeholders with your education, certifications, languages, etc.
 
-## Documentation
+### 5. Start Building Your Knowledge Base
 
-For architecture details, customization tables, the full critique system breakdown, key design decisions, and FAQ, see **[DOCS.md](DOCS.md)**.
+```
+/setup-extract path/to/your/project_readme.md     # Extract each project
+/setup-build-kb                                     # Build experience files & bundles
+```
 
----
+## What's Included
 
-## Contributing
+```
+tech-resume-kit-patch/
+├── .agents/                          # Antigravity workflows (for Google Antigravity users)
+│   ├── workflows/                    # 5 workflow files
+│   ├── helpers/                      # verify_build.py
+│   └── rules/                        # Anti-fabrication + Antigravity rules
+├── .claude/skills/                   # Claude Code skills (for Claude Code users)
+│   ├── setup-extract/SKILL.md
+│   ├── setup-build-kb/SKILL.md
+│   ├── setup-update/SKILL.md
+│   ├── make-resume/SKILL.md
+│   ├── make-cl/SKILL.md
+│   ├── edit-resume/SKILL.md
+│   └── critique/SKILL.md
+├── resume_builder/
+│   ├── reference/
+│   │   ├── critique_framework.md     # Tech-focused scoring (Projects & Portfolio weight)
+│   │   └── shared_ops.md            # Updated session workflow
+│   ├── templates/
+│   │   └── resume_template.tex      # Tech resume layout (Projects, Skills, Certs)
+│   └── support/
+│       ├── portfolio_metadata.md     # Template: tracks repos, competitions, certs
+│       ├── skills_taxonomy.md        # Template: skill categories for tech roles
+│       └── achievement_reframing_guide.md  # Template: format for role-type framing
+├── knowledge_base/
+│   ├── extractions/_INVENTORY.md     # Empty inventory with tech-oriented columns
+│   ├── sources/                      # Organized folders for input materials
+│   │   ├── project_docs/.gitkeep
+│   │   ├── certificates/.gitkeep
+│   │   ├── course_materials/.gitkeep
+│   │   └── competition_docs/.gitkeep
+│   └── notes/.gitkeep               # Any other reference material
+├── config.md                         # Template with placeholders (fill in your info)
+├── SESSIONS.md                       # Master tracker of active sessions
+├── CLAUDE.md                         # Updated project instructions
+├── DOCS.md                           # Updated documentation
+└── README.md                         # This file
+```
 
-Issues and PRs welcome. When contributing:
-- Example files use the fictional Dr. Jordan Chen — keep examples in that persona
-- Reference docs should stay domain-agnostic
-- Test skill changes against the example data before submitting
+## Works With Both Claude Code and Antigravity
 
----
+This patch maintains **dual workflow support**:
+- **Claude Code** users: invoke skills via `/setup-extract`, `/make-resume`, etc.
+- **Antigravity** users: use the `.agents/workflows/` versions
 
-## License
+Both systems read the same knowledge base and config files. They do not interfere with each other.
 
-MIT — see [LICENSE](LICENSE).
+## Getting Started Workflow
+
+1. **Extract** your projects: `/setup-extract` on each project README, course syllabus, internship doc
+2. **Build** your knowledge base: `/setup-build-kb` synthesizes everything into experience files and bundles
+3. **Update** your knowledge base: `/setup-update` whenever you finish a new project or earn a cert
+4. **Generate** a resume: `/make-resume JDs/your_jd.txt` tailors a resume to a specific job
+5. **Generate** a cover letter: `/make-cl output/<Folder>/session_<name>.md`
+6. **Critique** the package: `/critique output/<Folder>/session_<name>.md`

@@ -113,7 +113,6 @@ Read the resume/CV from five different personas, in order. Each persona sees onl
 - Do skills group NAMES (not just content) signal target-domain relevance?
 - Does the first bullet under each position deliver the strongest JD-relevant achievement?
 - Are years of experience consistent with JD requirements?
-- Immigration status present if required?
 
 **Output:** "Phone screen" / "Borderline" / "Pass" + one-sentence reasoning.
 

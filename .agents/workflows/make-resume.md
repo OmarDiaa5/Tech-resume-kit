@@ -182,7 +182,7 @@ FIXED sections (from `config.md` FIXED Sections) are template-locked — only ge
    - Position titles: bold theme + date must fit ONE line. If wrapping, shorten title.
    - After each position: Update Status → `Phase 2: [Position] DONE`
 
-Save .tex to `output/<FolderName>/Omar_Diaa_resume_<FolderName>.tex`
+Save .tex to `output/<FolderName>/resume_<FolderName>.tex`
 
 Update session file — add Output Files.
 
@@ -191,12 +191,12 @@ Progress: "Writing bullets..." / "Running automated validation linter..."
 ### THE ANTIGRAVITY LINT & COMPILE GATE
 Run the automated verification script on the generated `.tex` file in the background:
 ```bash
-python3 .agents/helpers/verify_build.py output/<FolderName>/Omar_Diaa_resume_<FolderName>.tex -f [resume|cv] --json
+python3 .agents/helpers/verify_build.py output/<FolderName>/resume_<FolderName>.tex -f [resume|cv] --json
 ```
 * **If linter fails**: Read the JSON failure reports containing precise character counts, bold penalties, orphan issues, or forbidden jargon. Fix the violating bullets in the `.tex` file directly using `replace_file_content` and re-run the linter. **Do NOT prompt the user during this loop.**
 * **If linter passes**: Compile the document:
 ```bash
-pdflatex -interaction=nonstopmode -output-directory=output/<FolderName> output/<FolderName>/Omar_Diaa_resume_<FolderName>.tex
+pdflatex -interaction=nonstopmode -output-directory=output/<FolderName> output/<FolderName>/resume_<FolderName>.tex
 ```
 Ensure compile matches document preferences, then proceed.
 
@@ -386,7 +386,7 @@ FIXED sections (from `config.md` FIXED Sections) are template-locked — only ge
    - Position titles: bold theme + date must fit ONE line. If wrapping, shorten title.
    - After each position: Update Status → `Phase 2: [Position] DONE`
 
-Save .tex to `output/<FolderName>/Omar_Diaa_resume_<FolderName>.tex`
+Save .tex to `output/<FolderName>/resume_<FolderName>.tex`
 
 Update session file — add Output Files.
 
@@ -395,12 +395,12 @@ Progress: "Writing bullets..." / "Running automated validation linter..."
 ### THE ANTIGRAVITY LINT & COMPILE GATE
 Run the automated verification script on the generated `.tex` file in the background:
 ```bash
-python3 .agents/helpers/verify_build.py output/<FolderName>/Omar_Diaa_resume_<FolderName>.tex -f [resume|cv] --json
+python3 .agents/helpers/verify_build.py output/<FolderName>/resume_<FolderName>.tex -f [resume|cv] --json
 ```
 * **If linter fails**: Read the JSON failure reports containing precise character counts, bold penalties, orphan issues, or forbidden jargon. Fix the violating bullets in the `.tex` file directly using `replace_file_content` and re-run the linter. **Do NOT prompt the user during this loop.**
 * **If linter passes**: Compile the document:
 ```bash
-pdflatex -interaction=nonstopmode -output-directory=output/<FolderName> output/<FolderName>/Omar_Diaa_resume_<FolderName>.tex
+pdflatex -interaction=nonstopmode -output-directory=output/<FolderName> output/<FolderName>/resume_<FolderName>.tex
 ```
 Ensure compile matches document preferences, then proceed.
 

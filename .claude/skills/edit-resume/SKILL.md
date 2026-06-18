@@ -8,9 +8,9 @@ user-invocable: true
 **User input:** `$ARGUMENTS`
 
 Parse `$ARGUMENTS`: First argument is the .tex file path (required). A `.md` path is the critique file. Text in quotes is inline instructions.
-- `/edit-resume output/Acme/e2e_acme_resume.tex`
-- `/edit-resume output/Acme/e2e_acme_resume.tex output/Acme/critique_acme.md`
-- `/edit-resume output/Acme/e2e_acme_resume.tex "shorten Position 1 header, fill last page"`
+- `/edit-resume output/Acme/resume_Acme.tex`
+- `/edit-resume output/Acme/resume_Acme.tex output/Acme/critique_acme.md`
+- `/edit-resume output/Acme/resume_Acme.tex "shorten Project 1 header, fill last page"`
 
 If only .tex path and no instructions: ask the user what to fix.
 
@@ -24,8 +24,8 @@ Read `config.md` Provenance Flags before editing any content. Verify every claim
 
 - Use the email from `config.md` Personal Info in all outputs
 - Source ALL bullet content from `resume_builder/experience/` files. Never fabricate.
-- Resume bullets: ALL variable bullets must be 2L (CV: 2L/3L mix OK, check `config.md` Document Preferences)
-- Run `python3 resume_builder/helpers/char_count.py` after edits — the tool is authoritative
+- Resume bullet variant is **page-conditional**: 1-page → 1L default (2L only for the 1–2 strongest); 2-page → 2L default. (CV: 2L/3L mix.) A user directive ("make this a 2L") always wins. See `resume_reference.md` § Page & variant selection.
+- Run `python resume_builder/helpers/char_count.py` after edits — the tool is authoritative. **Never count chars in your reasoning** — edit, save, run the tool, ONE revision pass if violations, then accept or flag with `% CHAR_VIOLATION`.
 
 ### FIXED Sections — Refuse if Asked to Edit
 Check `config.md` FIXED Sections for the list of template-locked sections. Say no and explain: these are template-locked across all outputs.
@@ -47,10 +47,15 @@ If the user provides feedback, corrections, or suggestions at any point:
 
 ## Startup
 
-Read `resume_builder/reference/shared_ops.md` — Fresh Session Startup + Session File Derivation.
-Read `CLAUDE.md` — check Active Sessions and KB Corrections.
-Read `config.md` — load Provenance Flags, email, FIXED Sections, document preferences.
-Find and read the session file (use derivation protocol from shared_ops.md).
+Read `config.md` first, then `SESSIONS.md` (active-session tracker; CLAUDE.md is never written at runtime). Check `config.md` KB Corrections Log.
+
+**Session file derivation** (folder-based — do NOT parse the filename into a stem; canonical spec: `shared_ops.md` § Session File Derivation — keep in sync):
+- If `$ARGUMENTS` is a `.tex` path → take its folder, glob `<folder>/session_*.md`.
+- If `$ARGUMENTS` is a folder/FolderName/bare session name → glob `output/<FolderName>/session_*.md` or `output/*/session_<name>.md`.
+- Fallback: `SESSIONS.md` pointer, then glob `output/*/session_*<company>*.md`. **Never scan `output/_archive/`.**
+- If not found: tell user — "No session file exists. Run `/make-resume` first."
+
+Find and read the session file.
 
 **Recovery check:**
 - Read session file, check for existing Edit N Status
@@ -68,7 +73,7 @@ Read in this order:
 4. Critique file (if provided in `$ARGUMENTS`)
 5. JD file (path from session file's JD Info section)
 6. Compile current .tex and record baseline page count
-7. Run: `python3 resume_builder/helpers/char_count.py -f [resume|cv] [file.tex]`
+7. Run: `python resume_builder/helpers/char_count.py -f [resume|cv] [file.tex]`
 
 **Record baseline in session file** under `## Edit [N] Baseline` (scan existing Edit History sections; next N = max existing + 1, or 1 if none):
 
@@ -131,18 +136,16 @@ Load ONLY what the confirmed edits need:
 
 ## Phase 4: Execute Edits
 
-Apply edits one section at a time. After each edited section:
+Apply ALL confirmed edits to the document in one pass. Then:
 
-1. Run char count gate:
+1. Run char count gate ONCE on the entire file:
    ```bash
-   python3 resume_builder/helpers/char_count.py -f [resume|cv] output/<FolderName>/[file].tex
+   python resume_builder/helpers/char_count.py -f [resume|cv] output/<FolderName>/[file].tex
    ```
-2. Fix any OVER violations or orphans before next section
-3. If a bullet expansion doesn't render as expected (1L when targeting 2L, or 3L), adjust immediately
+2. If there are OVER violations or orphans, you are allowed ONE single revision pass to fix them.
+3. Run the char count gate again. If it still fails, you MUST STOP and prompt the user for help. Do NOT loop indefinitely.
 
-Update session file Edit N Status after each individual edit:
-- Edit 1 (orphan fix): DONE
-- Edit 2 (Summary rewrite): IN_PROGRESS
+Update session file Edit N Status after the batch edit:
 
 ### Resume/CV Verification Gates
 | Gate | Check | If FAIL |
@@ -154,12 +157,12 @@ Update session file Edit N Status after each individual edit:
 | Title width | Position title + date fits 1 line | Shorten title |
 | Compile | Clean pdflatex | Fix LaTeX errors |
 
-### Cover Letter Verification Gates (if CL was edited)
+### Cover Letter Verification Gates (only if a CL exists AND was edited)
 | Gate | Check | If FAIL |
 |------|-------|---------|
-| Word count | Industry 250-300, Lab/Academic 350-450 | Trim/expand |
-| Page fill | 1pg: well-filled. 2pg: page 2 >= half filled before signature | Adjust |
-| Paragraph count | Industry 3, Lab/Academic 4 | Restructure |
+| Word count | 250-300 words (1 page) | Trim/expand |
+| Page fill | Well-filled single page | Adjust |
+| Paragraph count | 3 paragraphs | Restructure |
 | Anti-patterns | No generic opener, no defensive framing, no credential dump | Rewrite |
 | Package cohesion | CL claims traceable to resume bullets, no contradictions | Fix |
 
@@ -196,16 +199,19 @@ Progress: "Editing Position 1 bullet 6 — was 184 chars, now 197..." / "Compili
 
 3. **Update Status** — mark critique as STALE if edits made after last critique. Update Next.
 
-4. **Update memory pointer** if status changed.
+4. **Write/overwrite the Phase Handoff block** in the session file (last action before user-facing summary). List the 2–4 files the next skill needs (typically session file + re-edited .tex + critique.md if re-critique is next), lock the decisions made this edit pass, and write the cold-restart command. See `resume_builder/reference/session_file_template.md` → Phase Handoff.
 
-5. **Present:** Changes summary + delta table + compiled PDF.
+5. **Update the session row in `SESSIONS.md`** if status changed (e.g., critique now STALE).
+
+6. **Present:** Changes summary + delta table + compiled PDF.
 
 ### >>>>>> MANDATORY STOP <<<<<<
 Show results. Wait for user approval or further edits.
 **You MUST wait for the user's explicit text response before continuing.**
 
 ### When user approves / says "looks good" / finalizes:
-Run file organization from `resume_builder/reference/shared_ops.md` — Finalization check.
+Verify all expected files exist in `output/<FolderName>/`: session file, resume/CV .tex + .pdf, CL .tex + .pdf, critique .md.
+Confirm: "Package complete in output/<FolderName>/ — [N files]"
 
 ## Edit Signal Capture
 

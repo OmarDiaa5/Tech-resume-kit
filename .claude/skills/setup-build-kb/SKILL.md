@@ -38,7 +38,7 @@ Progress: "Found [N] extractions across [M] categories. Config has [K] role type
 
 **Goal:** Create one experience file per experience category, containing all achievements organized for resume generation.
 
-**Read:** All extraction files listed in `_INVENTORY.md`
+**Read:** Consult `_INVENTORY.md` (per-item router) and `Read` only the specific line ranges for items relevant to the experience file currently being built. Do NOT load whole extraction files when only one item is needed.
 
 **For each category** (from `config.md` or inferred from extraction metadata — e.g., Projects, Internships, Courses, Competitions, Leadership):
 

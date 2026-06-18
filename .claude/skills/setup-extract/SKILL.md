@@ -72,10 +72,12 @@ Present your understanding of the source and ask the clarifying questions above.
 Create the extraction file at `knowledge_base/extractions/<topic_descriptor>.md`
 
 **Naming convention:** `<topic>_<2-3_word_descriptor>.md`
-- Examples: `drone_capstone.md`, `aic4_tracker.md`, `depi_courses.md`, `kaggle_nlp_competition.md`
+- Examples: `capstone_project.md`, `competition_tracker.md`, `bootcamp_courses.md`, `kaggle_nlp_competition.md`
 - Normalize to lowercase with underscores
 
 **Extraction format:**
+
+> **REQUIRED:** Every project / internship / competition / certification / course block MUST include a `Date:` field with exact month + year (e.g., `Mar 2026`, `Nov 2025 – Jul 2026`). If the file contains multiple items (e.g., Project 1, Project 2), each item's Overview block needs its own `Date:` line. Without it, the extraction is considered incomplete and downstream skills (make-resume) will halt and ask the user.
 
 ```markdown
 # [Full Title]
@@ -87,6 +89,7 @@ Create the extraction file at `knowledge_base/extractions/<topic_descriptor>.md`
 - **Your role:** [sole developer | team lead | co-developer | contributor]
 - **Team size:** [N or solo]
 - **Status:** [completed | in-progress | ongoing]
+- **Date:** [Mon YYYY or Mon YYYY – Mon YYYY] — REQUIRED, used verbatim by resume generation
 
 ## Methods & Tools
 - **Computational methods:** [e.g., deep learning, NLP, computer vision, web scraping, data pipelines, etc.]
@@ -132,17 +135,23 @@ Progress: "Writing extraction for [short title]... [N] results identified, [M] b
 
 ---
 
-## Phase 4: Update Inventory
+## Phase 4: Update Inventory (PER-ITEM ROUTER)
 
-Read and update `knowledge_base/extractions/_INVENTORY.md`.
+Read and update `knowledge_base/extractions/_INVENTORY.md`. **The inventory is a per-item index, not a per-file directory.** Each project / course block / competition / internship / leadership role inside the extraction file gets its OWN row.
 
-Add a row to the inventory table:
+For each item the extraction added or modified, append/update a row in the Per-Item Index table:
 
 ```
-| [filename] | [short title] | [source type] | [your role] | [status] | [primary tech] | [date extracted] |
+| # | Item | Type | File | Section anchor (lines) | Date | Status | Primary Tech | One-line summary |
 ```
 
-Present the updated inventory entry to the user.
+- **Section anchor (lines):** Compute from the file (e.g., `## Project 2` (lines 67–134)). Refresh ranges of any items whose line numbers shifted because of the edit.
+- **Date:** Copy from the item's `Date:` field. If the item lacks one, mark `TBD (user to confirm)` and remind the user.
+- **One-line summary:** Maximum ~100 chars — designed so bullet planners can pick the right item without opening the file.
+
+If you are updating an existing item, rewrite its row in place rather than appending a duplicate.
+
+Present the updated inventory entries to the user.
 
 ---
 

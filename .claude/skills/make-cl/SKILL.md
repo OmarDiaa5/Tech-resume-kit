@@ -7,10 +7,12 @@ user-invocable: true
 
 **User input:** `$ARGUMENTS`
 
+> Cover letters are OPT-IN. This skill runs only when the user explicitly invokes `/make-cl`. `/make-resume` never auto-chains here.
+
 Parse `$ARGUMENTS`:
 - Session file path (e.g., `output/Acme/session_acme_engineer.md`) → read that session file
-- Session name (e.g., `acme_engineer`) → find session file via shared_ops.md derivation
-- Empty → check `CLAUDE.md` Active Sessions for latest
+- Session name (e.g., `acme_engineer`) → find session file via derivation below
+- Empty → check `SESSIONS.md` for the latest active session
 
 ---
 
@@ -23,6 +25,7 @@ Read `config.md` Provenance Flags before generating any content. Verify every cl
 - Use the email from `config.md` Personal Info in all outputs
 - CL deepens what resume presents — never introduces new claims not traceable to resume bullets
 - Source field context from `resume_builder/support/significance_*.md` files
+- **Word/line counts go through tools, not mental tallying.** Use `wc -w` on the CL .tex (or `char_count.py` for resume-style bullets). Never compute word/char counts in reasoning.
 
 ---
 
@@ -38,29 +41,34 @@ If the user provides feedback, corrections, or suggestions at any point:
 
 ## Startup
 
-Read `resume_builder/reference/shared_ops.md` for session startup and file derivation.
+Read `config.md` first, then `SESSIONS.md` (active-session tracker; CLAUDE.md is never written at runtime).
 
-Then:
-1. Read `CLAUDE.md` — check Active Sessions and KB Corrections
-2. Read `config.md` — load Provenance Flags, email, role types
-3. Find and read the session file
-4. **Recovery check:**
-   - If CL Status is DONE → "CL already generated. Run `/critique` next." Show next command. Stop.
-   - If CL Status is IN_PROGRESS → check if CL .tex exists, offer to resume or regenerate
+**Session file derivation** (folder-based — do NOT parse the filename into a stem; canonical spec: `shared_ops.md` § Session File Derivation — keep in sync):
+- If `$ARGUMENTS` is a `session_*.md` path → use it.
+- If `$ARGUMENTS` is a `.tex` path → take its folder, glob `<folder>/session_*.md`.
+- If `$ARGUMENTS` is a folder/FolderName/bare session name → glob `output/<FolderName>/session_*.md` or `output/*/session_<name>.md`.
+- Fallback: `SESSIONS.md` pointer, then glob `output/*/session_*<company>*.md`.
+- **Never scan `output/_archive/`** (retired `e2e_*` storage). All globs stay one level under `output/`.
+
+Find and read the session file.
+
+**Recovery check:**
    - If Resume Status is not DONE → "Resume not yet generated. Run `/make-resume` first." Stop.
-   - If CL Status is PENDING → proceed to Phase 1
+   - If CL Status is DONE → "CL already generated. Optionally run `/critique`." Show command. Stop.
+   - If CL Status is IN_PROGRESS → check if CL .tex exists, offer to resume or regenerate
+   - If CL Status is NOT REQUESTED or PENDING → proceed to Phase 1 (the user explicitly invoked `/make-cl`, so generate it now)
 
 ---
 
 ## Phase 1: Load Context
 
 Read in this order:
-1. **Session file** — specifically: Company Context, Cover Letter Plan, Framing Strategy, ATS Keywords
-2. **Finished resume/CV .tex** — path from session file Output Files. Read to understand what CL must complement.
+1. **Session file** — specifically: Company Context, Framing Strategy, ATS Keywords. (There is normally **no** pre-written Cover Letter Plan — `/make-resume` does not produce one. **Build the CL plan now** from Company Context + Framing Strategy + bundle S5: institution type, paragraph structure, P1 hook, jargon level, "why them" angle. If Company Context is thin, do 1-2 quick web searches.)
+2. **Finished resume .tex** — path from session file Output Files. Read to understand what the CL must complement.
 3. `resume_builder/reference/cl_reference.md` — CL format rules, paragraph templates, anti-patterns
 4. `resume_builder/support/ai_fingerprint_rules.md` — Banned words, structural rules (CLs are most vulnerable)
 5. The matching bundle from session file role type → `resume_builder/bundles/bundle_[role_type].md` — Section 5 (Cover Letter)
-5. All significance files from `resume_builder/support/significance_*.md`
+6. All significance files from `resume_builder/support/significance_*.md`
 
 Update session file Status: `Cover Letter: IN_PROGRESS`
 
@@ -72,18 +80,18 @@ Progress: "Loading CL context — [company], [role type] bundle, [institution ty
 
 Read `resume_builder/templates/coverletter_template.tex`.
 
-**Detect institution type** from session file Cover Letter Plan:
+**Institution type** (from the CL plan you built in Phase 1):
 - Industry → 3 paragraphs, 250-300 words
 - Startup → 3 paragraphs, 200-250 words (shorter, more direct)
 
 **Generate CL following cl_reference.md paragraph structure:**
 - Use significance files for field-context depth (NOT resume bullet text)
-- Use session file CL hooks and "why them" angle
+- Use the "why them" angle and hooks from your Phase 1 plan / session Framing Strategy
 - Ensure every major claim is traceable to a resume bullet
 - Open with a specific reference to their work — no generic openers
 - Weave credentials into body paragraphs, not closing
 
-Save to `output/<FolderName>/Omar_Diaa_cover_letter_<FolderName>.tex`
+Save to `output/<FolderName>/cover_letter_<FolderName>.tex`
 
 Progress: "Writing [institution type] cover letter — [N] paragraphs, targeting [N] words..."
 
@@ -105,7 +113,7 @@ Do NOT present the CL draft to the user until all hooks are verified or flagged.
 ## Phase 3: Compile & Verify
 
 ```bash
-pdflatex -interaction=nonstopmode -output-directory=output/<FolderName> output/<FolderName>/Omar_Diaa_cover_letter_<FolderName>.tex
+pdflatex -interaction=nonstopmode -output-directory=output/<FolderName> output/<FolderName>/cover_letter_<FolderName>.tex
 ```
 
 Use Read tool to view compiled PDF. Verify:
@@ -123,6 +131,7 @@ Update session file:
 - Add CL to Output Files
 - Status: `Cover Letter: DONE`
 - Add Next Critique command
+- **Write/overwrite the Phase Handoff block** — next phase = `/critique`; list files `/critique` needs (session file, finished resume .tex, finished CL .tex, bundle); write the cold-restart command.
 
 Progress: "Compiled — 1 page, 278 words. Package cohesion verified."
 

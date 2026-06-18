@@ -1,38 +1,42 @@
 # Shared Operations — All Skills
 
-> Referenced by `/make-resume`, `/make-cl`, `/critique`, and `/edit-resume`.
-> Read this file at skill startup. Skills reference specific sections by name.
+> Canonical written spec for the session/workflow system. Skills do **not** load this file at
+> runtime — they inline the parts they need (see each SKILL.md) for token efficiency. This file
+> is the source of truth: keep those inline copies in sync with the sections here.
 
 ---
 
-## Three-Session Workflow
+## Workflow (resume-first, cover letter OPT-IN)
 
-Standard JD pipeline uses 3 sessions for token efficiency + quality:
+The default deliverable is a **resume**. A cover letter is generated **only if the user runs `/make-cl`** — never auto-chained.
 
 Session 1: `/make-resume JDs/JD_xyz.txt`
   → Phase 0 (research) → STOP → Phase 1 (bullets) → STOP → Phase 2 (resume) → STOP
-  → "Resume done. Copy after /clear: /make-cl output/<Folder>/session_<name>.md"
+  → "Resume done. Optional next: `/critique output/<Folder>/session_<name>.md` (review),
+     or `/make-cl output/<Folder>/session_<name>.md` ONLY if you want a cover letter."
 
-Session 2: `/make-cl output/<Folder>/session_<name>.md`
-  → Load context → generate CL → compile → STOP
-  → "CL done. Copy after /clear: /critique output/<Folder>/session_<name>.md"
-
-Session 3: `/critique output/<Folder>/session_<name>.md`
-  → Full package critique → STOP
+Session 2 (optional, only if requested): `/critique output/<Folder>/session_<name>.md`
+  → Critique resume (and CL if one exists) → STOP
   → If approved: finalization check → "Package complete in output/<Folder>/"
 
+Cover letter (only when the user explicitly asks): `/make-cl output/<Folder>/session_<name>.md`
+
 If edits needed after critique:
-  /clear → /edit-resume output/<Folder>/e2e_<name>_cv.tex output/<Folder>/critique_<name>.md
+  /clear → /edit-resume output/<Folder>/resume_<Folder>.tex output/<Folder>/critique_<name>.md
   /clear → /critique output/<Folder>/session_<name>.md (re-critique)
+
+Use a fresh session (`/clear`) per step for token efficiency and fresh-eyes quality.
 
 ---
 
 ## Fresh Session Startup
 
 CLAUDE.md is auto-loaded. These files are NOT — read them at skill start:
-1. `CLAUDE.md` — check Active Sessions and KB Corrections Log
-2. If resuming work on an existing JD: read its session file and pick up at Status → Next
-3. If starting a new JD: proceed to Phase 0
+1. `config.md` — personal info, provenance flags, KB corrections
+2. `SESSIONS.md` — the mutable active-session tracker (NOT CLAUDE.md; CLAUDE.md is never written at runtime)
+3. If resuming work on an existing JD: read its session file and pick up at Status → Next
+4. If starting a new JD: proceed to Phase 0
+5. **If invoked via `/make-resume`, the session-existence check runs FIRST** — before any web search, JD parse, or folder mkdir. See `make-resume/SKILL.md` Phase −1.
 
 ---
 
@@ -44,8 +48,8 @@ Every JD gets a persistent session file: `output/<FolderName>/session_<name>.md`
 
 **All output files use the same key and direct naming format:**
 - `output/<FolderName>/session_<name>.md` — context file
-- `output/<FolderName>/Omar_Diaa_resume_<FolderName>.tex` — generated document (compiles directly to `Omar_Diaa_resume_<FolderName>.pdf`)
-- `output/<FolderName>/Omar_Diaa_cover_letter_<FolderName>.tex` — cover letter (compiles directly to `Omar_Diaa_cover_letter_<FolderName>.pdf`)
+- `output/<FolderName>/resume_<FolderName>.tex` — generated document (compiles directly to `resume_<FolderName>.pdf`)
+- `output/<FolderName>/cover_letter_<FolderName>.tex` — cover letter (compiles directly to `cover_letter_<FolderName>.pdf`)
 - `output/<FolderName>/critique_<name>.md` — critique
 
 **Re-read the session file at the start of EVERY phase** to restore context after compaction.
@@ -54,16 +58,17 @@ Every JD gets a persistent session file: `output/<FolderName>/session_<name>.md`
 
 ## Session File Derivation (for /make-cl, /critique, and /edit-resume)
 
-From .tex path: strip `Omar_Diaa_resume_` prefix (if present) + `.tex`/`.pdf`/`_cover_letter.tex` suffix → `<name>`.
-
-Example: `output/Acme/e2e_acme_engineer_resume.tex` → `acme_engineer` → look for `session_acme_engineer.md`
+**The session file is the `session_*.md` that lives in the SAME folder as the target document.** Derive by folder, never by parsing the filename into a `<name>` — the resume is named after the *folder* (`resume_Nokia.tex`) while the session is named after the *role* (`session_nokia_ni_ds_ai_trainee.md`), so they do not share a stem.
 
 **Search order:**
-1. Direct path from $ARGUMENTS
-2. Folder path: `output/<FolderName>/session_<name>.md` (derive FolderName from JD filename or session name)
-3. Flat `output/` (legacy): `output/session_<name>.md`
-4. `CLAUDE.md` Active Sessions pointer
-5. Glob: `output/**/session_*<company>*.md`
+1. If `$ARGUMENTS` is a `session_*.md` path → use it directly.
+2. If `$ARGUMENTS` is a `.tex`/`.pdf` path → take its folder, glob `<folder>/session_*.md`.
+3. If `$ARGUMENTS` is a folder or a FolderName → glob `output/<FolderName>/session_*.md`.
+4. If `$ARGUMENTS` is a bare session name → glob `output/*/session_<name>.md`.
+5. `SESSIONS.md` active-session pointer.
+6. Last resort: glob `output/*/session_*<company>*.md`.
+
+**NEVER scan `output/_archive/`** — it is cold storage of retired `e2e_*` builds. All globs are one level under `output/` (`output/*/…`), which excludes the two-level archive paths by construction.
 
 **If still not found:**
 - `/edit-resume`: Tell user — "No session file exists. Run `/make-resume` first, or I can create a minimal one (JD Info + Framing Strategy inferred from .tex content)."
@@ -84,9 +89,9 @@ Per-phase examples are in each SKILL.md.
 
 ## Char Count Enforcement
 
-Run `python3 resume_builder/helpers/char_count.py` after each section or position you write/edit.
+Run `python resume_builder/helpers/char_count.py` once after the document (or section, if mid-edit) is saved to disk — not per-bullet, not before writing.
 
-The tool is authoritative — never trust mental math for char counts. If the tool fails, fall back to manual count and flag: "char_count.py unavailable — manual count, verify after compile."
+**Never count characters in your thoughts** — the tool is fast and exact; mental counting is slow and wrong. The tool is the only authority. If the tool fails, flag: "char_count.py unavailable — verify after compile."
 
 ---
 
@@ -106,13 +111,14 @@ The tool is authoritative — never trust mental math for char counts. If the to
 **Trigger:** User approves final output at `/critique` STOP.
 
 **Steps:**
-1. Verify all expected files exist in `output/<FolderName>/`:
-   - `session_<name>.md`
-   - `Omar_Diaa_resume_<FolderName>.tex` + `.pdf` + compile artifacts
-   - `Omar_Diaa_cover_letter_<FolderName>.tex` + `.pdf` + compile artifacts
-   - `critique_<name>.md`
-2. No further renaming is needed as files are already named `Omar_Diaa_resume_<FolderName>.pdf` and `Omar_Diaa_cover_letter_<FolderName>.pdf` by default.
-3. Confirm to user: "Package complete in output/<FolderName>/ — [N] files"
+1. Verify the expected files exist in `output/<FolderName>/`:
+   - `session_<name>.md` (always)
+   - `resume_<FolderName>.tex` + `.pdf` + compile artifacts (always)
+   - `critique_<name>.md` (if `/critique` was run)
+   - `cover_letter_<FolderName>.tex` + `.pdf` (**only if `/make-cl` was run** — a resume-only package is complete without it)
+2. No renaming needed — files are already `resume_<FolderName>.{tex,pdf}` by default.
+3. **PDF naming guard:** delete any stray long-form variant (`Full_Name_Resume_*.pdf`) or legacy `e2e_*` PDF in an active folder. One resume PDF per package.
+4. Confirm to user: "Package complete in output/<FolderName>/ — [N] files"
 
 ---
 
@@ -121,5 +127,5 @@ The tool is authoritative — never trust mental math for char counts. If the to
 Before the session ends or user does `/clear`:
 
 1. **Update session file Status** — reflects actual state (which phase completed, what's next)
-2. **Update memory pointer** in `CLAUDE.md` Active Sessions
+2. **Update the session row in `SESSIONS.md`** (the mutable tracker — never write to CLAUDE.md)
 3. **If mid-phase:** Write a `## Resume Point` section to the session file noting exactly where you stopped and what remains

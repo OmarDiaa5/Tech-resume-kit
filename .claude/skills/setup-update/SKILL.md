@@ -67,8 +67,8 @@ Present the delta table and ask:
 ## Phase 1: Selective Extraction
 
 For each confirmed NEW/CHANGED item:
-1. Run the extraction logic from `/setup-extract` (same format, same provenance rules)
-2. Update `_INVENTORY.md` with the new entry
+1. Run the extraction logic from `/setup-extract` (same format, same provenance rules — including the required per-item `Date:` field)
+2. Update `_INVENTORY.md` **per-item router**: add or rewrite the row for this specific item with its file + line range, date, status, primary tech, and one-line summary. If line ranges of other items shifted because of the edit, refresh those too.
 3. Mark the extraction date
 
 For CHANGED items:
@@ -81,7 +81,7 @@ For CHANGED items:
 
 After extraction, check which KB outputs are affected:
 
-1. **Experience files** (`resume_builder/experience/`) — rebuild only files whose source extractions changed
+1. **Experience files** (`resume_builder/experience/`) — rebuild only files whose source extractions changed. When loading source content, use the per-item line ranges from `_INVENTORY.md` rather than reading whole extraction files.
 2. **Bundles** (`resume_builder/bundles/`) — rebuild only if the priority matrix changed
 3. **Skills taxonomy** (`resume_builder/support/skills_taxonomy.md`) — rebuild if new tech was extracted
 4. **Portfolio metadata** (`resume_builder/support/portfolio_metadata.md`) — rebuild if new projects/certs added

@@ -83,7 +83,7 @@ Read `resume_builder/templates/coverletter_template.tex`.
 - Open with a specific reference to their work — no generic openers
 - Weave credentials into body paragraphs, not closing
 
-Save to `output/<FolderName>/Omar_Diaa_cover_letter_<FolderName>.tex`
+Save to `output/<FolderName>/cover_letter_<FolderName>.tex`
 
 Progress: "Writing [institution type] cover letter — [N] paragraphs, targeting [N] words..."
 
@@ -105,7 +105,7 @@ Do NOT present the CL draft to the user until all hooks are verified or flagged.
 ## Phase 3: Compile & Verify
 
 ```bash
-pdflatex -interaction=nonstopmode -output-directory=output/<FolderName> output/<FolderName>/Omar_Diaa_cover_letter_<FolderName>.tex
+pdflatex -interaction=nonstopmode -output-directory=output/<FolderName> output/<FolderName>/cover_letter_<FolderName>.tex
 ```
 
 Use Read tool to view compiled PDF. Verify:

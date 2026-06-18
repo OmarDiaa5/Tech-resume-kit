@@ -1,57 +1,22 @@
 # claude-resume-kit — Project Instructions
 
-> This file is auto-loaded by Claude Code. It provides project-wide rules for all skills.
-> **NEVER EDIT THIS FILE at runtime.** All mutable state belongs in SESSIONS.md, session files, or config.md.
+> Auto-loaded every session — keep it lean and stable. Mutable state (active sessions, per-JD
+> decisions) belongs in SESSIONS.md, session files, or config.md, never here.
 
 ---
 
-## File Map
+## Project Layout
 
-```
-.claude/skills/                    # Claude Code skills (invoked as /skill-name)
-├── setup-extract/SKILL.md         # Extract from projects/sources into structured extractions
-├── setup-build-kb/SKILL.md        # Build experience files, bundles, taxonomy from extractions
-├── setup-update/SKILL.md          # Incremental KB updates (detect deltas, avoid duplicates)
-├── make-resume/SKILL.md           # Phase 0-2: JD research → bullet plan → resume generation
-├── make-cl/SKILL.md               # Cover letter generation from session file
-├── edit-resume/SKILL.md           # Edit resume from critique or user feedback
-└── critique/SKILL.md              # 8-dimension critique of full package
+Full tree + customization guide: see `DOCS.md`. The locations skills touch most:
 
-.agents/workflows/                  # Antigravity workflows (same skills, separate files)
-├── setup-extract.md
-├── setup-build-kb.md
-├── setup-update.md
-├── make-resume.md
-├── make-cl.md
-└── critique.md
+- `.claude/skills/<name>/SKILL.md` — the skills, invoked as `/skill-name`.
+- `resume_builder/reference/` — generation rules. `resume_reference.md` is the single source of truth for char limits; `critique_framework.md` drives `/critique`; `cl_reference.md` / `cv_reference.md` load only for cover letters / CVs.
+- `resume_builder/{experience,bundles,support}/` — your KB content used during generation (built by the setup skills).
+- `knowledge_base/{extractions,sources,notes}/` — raw materials in, structured extractions out.
+- `output/<Folder>/` — per application: the resume `.tex`, `session_*.md` (state), and `critique_*.md`.
+- `config.md` (email, provenance flags, role types) · `SESSIONS.md` (active-session state).
 
-resume_builder/
-├── reference/
-│   ├── shared_ops.md              # Session startup, derivation, workflow — ALL skills
-│   ├── resume_reference.md        # Resume rules — /make-resume, /edit-resume
-│   ├── cl_reference.md            # CL rules — /make-cl, /edit-resume (CL edits)
-│   ├── critical_rules.md          # Compact re-read — /make-resume Phase 2
-│   ├── session_file_template.md   # Session file format
-│   └── critique_framework.md      # 8-part critique system
-├── templates/                     # LaTeX .cls + .tex templates
-├── helpers/                       # char_count.py, verify_build.py
-├── examples/                      # Fictional "Dr. Jordan Chen" — reference only
-├── experience/                    # /setup-build-kb outputs: one file per category
-├── bundles/                       # /setup-build-kb outputs: one per target role type
-└── support/                       # Skills taxonomy, portfolio metadata, reframing guide
-
-knowledge_base/                    # User's raw materials
-├── extractions/                   # /setup-extract outputs here
-├── sources/                       # Drop inputs here before running /setup-extract
-│   ├── project_docs/              # GitHub READMEs, project reports
-│   ├── certificates/              # Certificate PDFs, course completions
-│   ├── course_materials/          # Syllabi, assignment specs
-│   └── competition_docs/          # Competition briefs, results
-└── notes/                         # Any other reference material
-
-config.md                          # User configuration (email, provenance, role types)
-SESSIONS.md                        # Active session state (mutable, read by skills at startup)
-```
+**`.agents/` is Antigravity-only — Claude Code MUST NOT read or edit it.**
 
 ---
 
@@ -124,20 +89,14 @@ Institutional project funding (grants, internal R&D programs) is NOT a personal 
 
 ---
 
-## LaTeX Scientific Notation (MANDATORY)
+## LaTeX Notation Gotchas (tech resumes)
 
-All templates load `mhchem` (`\usepackage[version=4]{mhchem}`). Use these conventions:
+Two rules that actually bite ML/CV/DS resumes:
 
-| Item | Correct LaTeX | Wrong | Rendered |
-|------|--------------|-------|----------|
-| Chemical formulas | `\ce{H2O}`, `\ce{TiO2}` | `H2O`, `H$_2$O` | H₂O |
-| Superscripts | `$^2$`, `$^\circ$C` | `^2`, `°C` | ², °C |
-| Greek letters | `$\beta$`, `$\alpha$` | `beta`, `alpha` | β, α |
-| Approximately | `$\sim$64` | `~64` (LaTeX non-breaking space!) | ~64 |
+- **`~` is a non-breaking space in LaTeX, NOT a tilde.** For "approximately" always write `$\sim$5.6ms`, never `~5.6ms`.
+- **Superscripts/subscripts need math mode:** `R$^2$=0.91`, `F$_1$` — not `R^2` or `F_1`. Greek letters: `$\alpha$`, `$\beta$`.
 
-**CRITICAL:** `~` in LaTeX is a non-breaking space, NOT a tilde. Use `$\sim$` for "approximately."
-
-For char counting: `\ce{TiO2}` → 4 rendered chars, `$\beta$` → 1 rendered char.
+For char counting: `$\sim$` → 1 rendered char, `R$^2$` → 2 rendered chars. `char_count.py` handles the stripping; never count in your head.
 
 ---
 
